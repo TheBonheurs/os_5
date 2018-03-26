@@ -8,9 +8,9 @@
 #define sha "objcopy -j.sha "
 #define restore "objcopy -R.sha "
 #define ver1 "openssl dgst -sha256 -verify " 
-#define ver2 " -signature digest "
+#define ver2 " -signature digest"
 #define digest "digest" 
-#define safe "safe"
+#define safe " safe"
 #define ok "OK"
 #define failure "Failure"
 int main(int argc, char **argv)
@@ -50,11 +50,21 @@ int main(int argc, char **argv)
         strcat(strcat(extract_sign, " "), digest);
         char verify[80] = ver1;
         strcat(strcat(verify, argv[2]), ver2);
-        strcat(verify, argv[1]);
+        strcat(verify, safe);
         char exec[80] = restore;
         strcat(strcat(exec, argv[1]), safe);
         
         fp = popen(extract_sign, "r");
+        if (fp == NULL) 
+        {
+            fprintf(stderr, "Failed to run command : %s\n", extract_sign);
+            perror("Error with popen");
+            exit(1);
+        }
+        /* close */
+        pclose(fp);
+        
+        fp = popen(exec, "r");
         if (fp == NULL) 
         {
             fprintf(stderr, "Failed to run command : %s\n", extract_sign);
@@ -90,15 +100,6 @@ int main(int argc, char **argv)
         
         if(legit)
         {
-            fp = popen(exec, "r");
-            if (fp == NULL) 
-            {
-                fprintf(stderr, "Failed to run command : %s\n", exec);
-                perror("Error with popen");
-                exit(1);
-            }
-            /* close */
-            pclose(fp);
             system(safe);
         }
     }
